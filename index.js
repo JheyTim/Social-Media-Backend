@@ -79,13 +79,12 @@ require('./services/passportGoogle');
       return {};
     },
     formatError: (err) => {
-      // Log the error for debugging
-      logger.error(err);
+      logger.error(`GraphQL Error: ${err.message}`, { details: err });
 
-      // Return the formatted error
       return {
-        message: err.message,
+        message: err.message || 'An unexpected error occurred.',
         statusCode: err.extensions?.code || 500,
+        path: err.path || null, // Include the GraphQL path where the error occurred
       };
     },
   });
