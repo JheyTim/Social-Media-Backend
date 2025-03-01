@@ -18,6 +18,7 @@
   "homepage": "https://github.com/JheyTim/Social-Media-Backend#readme",
   "description": "",
   "dependencies": {
+    "@graphql-tools/schema": "^10.0.20",
     "apollo-server-express": "^3.13.0",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",

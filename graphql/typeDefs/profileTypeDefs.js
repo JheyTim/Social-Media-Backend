@@ -1,6 +1,6 @@
 const { gql } = require('apollo-server-express');
 
-const typeDefs = gql`
+exports.profileTypeDefs = gql`
   type User {
     id: ID!
     email: String!
@@ -9,11 +9,6 @@ const typeDefs = gql`
     profilePicture: String
     website: String
     location: String
-  }
-
-  type AuthPayload {
-    token: String!
-    user: User
   }
 
   type FollowResult {
@@ -36,12 +31,8 @@ const typeDefs = gql`
   }
 
   type Mutation {
-    signup(email: String!, password: String!, name: String): AuthPayload
-    login(email: String!, password: String!): AuthPayload
     updateProfile(input: UpdateProfileInput!): User
     followUser(userToFollowId: ID!): FollowResult
     unfollowUser(userToUnfollowId: ID!): FollowResult
   }
 `;
-
-module.exports = typeDefs;

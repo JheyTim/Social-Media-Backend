@@ -4,11 +4,10 @@ const jwt = require('jsonwebtoken');
 const passport = require('passport');
 const cors = require('cors');
 const express = require('express');
-const typeDefs = require('./graphql/typeDefs');
-const resolvers = require('./graphql/resolvers');
 const logger = require('./utils/logger');
 const connectDB = require('./config/db');
 const User = require('./models/User');
+const { schema } = require('./graphql/schema');
 
 require('./services/passportGoogle');
 
@@ -57,8 +56,7 @@ require('./services/passportGoogle');
 
   // Create an instance of ApolloServer
   const server = new ApolloServer({
-    typeDefs,
-    resolvers,
+    schema,
     context: async ({ req }) => {
       // Extract token from headers
       const token = req.headers.authorization;
@@ -72,6 +70,8 @@ require('./services/passportGoogle');
         } catch (error) {
           // Token is invalid or expired
           logger.error('Token error:', error);
+
+          throw new Error('Token is invalid or expired.');
         }
       }
 

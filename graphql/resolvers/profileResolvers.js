@@ -1,8 +1,7 @@
-const User = require('../models/User');
-const { generateToken } = require('../utils/auth');
-const { requireAuth } = require('../utils/requireAuth');
+const User = require('../../models/User');
+const { requireAuth } = require('../../utils/requireAuth');
 
-const resolvers = {
+exports.profileResolvers = {
   Query: {
     // Fetch user profile by ID
     getUserProfile: async (_, { userId }) => {
@@ -37,57 +36,8 @@ const resolvers = {
       return user.following; // array of populated user docs
     },
   },
+
   Mutation: {
-    // Signup
-    signup: async (_, { email, password, name }) => {
-      // Check if user exists
-      const existingUser = await User.findOne({ email });
-
-      if (existingUser) {
-        throw new Error('User already exists with that email.');
-      }
-
-      // Create and save user
-      const newUser = new User({
-        email,
-        password,
-        name,
-      });
-
-      await newUser.save();
-
-      const token = generateToken(newUser);
-
-      return {
-        token,
-        user: newUser,
-      };
-    },
-
-    // Login
-    login: async (_, { email, password }) => {
-      // Find user by email
-      const user = await User.findOne({ email });
-
-      if (!user) {
-        throw new Error('No user found with this email.');
-      }
-
-      const isMatch = await user.comparePassword(password);
-
-      if (!isMatch) {
-        throw new Error('Invalid credentials.');
-      }
-
-      // Generate token
-      const token = generateToken(user);
-
-      return {
-        token,
-        user,
-      };
-    },
-
     // Update the current user's profile
     updateProfile: async (_, { input }, { authUser }) => {
       // Ensure user is logged in
@@ -175,5 +125,3 @@ const resolvers = {
     },
   },
 };
-
-module.exports = resolvers;
