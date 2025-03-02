@@ -8,6 +8,7 @@ const logger = require('./utils/logger');
 const connectDB = require('./config/db');
 const User = require('./models/User');
 const { schema } = require('./graphql/schema');
+const { generateToken } = require('./utils/auth');
 
 require('./services/passportGoogle');
 
@@ -41,11 +42,7 @@ require('./services/passportGoogle');
       const user = req.user;
 
       // Generate an internal JWT
-      const token = jwt.sign(
-        { userId: user._id, email: user.email },
-        process.env.JWT_SECRET,
-        { expiresIn: '1h' }
-      );
+      const token = generateToken(user);
 
       // Redirect to your frontend with the token
       // e.g., "https://your-frontend.com?token=..."
