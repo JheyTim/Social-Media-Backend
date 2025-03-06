@@ -1,5 +1,9 @@
 const User = require('../../models/User');
+const Notification = require('../../models/Notification');
 const { requireAuth } = require('../../utils/requireAuth');
+const pubsub = require('../pubsub');
+
+const NEW_NOTIFICATION = 'NEW_NOTIFICATION';
 
 exports.profileResolvers = {
   Query: {
@@ -88,6 +92,26 @@ exports.profileResolvers = {
       // Save both
       await currentUser.save();
       await userToFollow.save();
+
+      const notification = new Notification({
+        type: 'FOLLOW',
+        sender: authUser._id,
+        receiver: userToFollowId,
+      });
+
+      await notification.save();
+
+      // Publish
+      const populatedNotification = await Notification.findById(
+        notification._id
+      )
+        .populate('sender')
+        .populate('receiver');
+
+      pubsub.publish(NEW_NOTIFICATION, {
+        newNotification: populatedNotification,
+        receiverId: userToFollowId,
+      });
 
       return { success: true };
     },

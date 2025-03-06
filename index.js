@@ -4,6 +4,9 @@ const jwt = require('jsonwebtoken');
 const passport = require('passport');
 const cors = require('cors');
 const express = require('express');
+const { createServer } = require('http');
+const { SubscriptionServer } = require('subscriptions-transport-ws');
+const { execute, subscribe } = require('graphql');
 const logger = require('./utils/logger');
 const connectDB = require('./config/db');
 const User = require('./models/User');
@@ -89,11 +92,45 @@ require('./services/passportGoogle');
   await server.start();
   server.applyMiddleware({ app, path: '/graphql' });
 
+  // Create HTTP server and attach the express app
+  const httpServer = createServer(app);
+
+  // Set up Subscription Server with subscriptions-transport-ws
+  SubscriptionServer.create(
+    {
+      schema,
+      execute,
+      subscribe,
+      onConnect: async (connectionParams) => {
+        // parse token from connectionParams for auth in subscriptions
+        if (connectionParams.authorization) {
+          try {
+            const decoded = jwt.verify(
+              connectionParams.authorization,
+              process.env.JWT_SECRET
+            );
+            const authUser = await User.findById(decoded.userId);
+            return { authUser };
+          } catch (err) {
+            console.error('Subscription auth error', err);
+
+            throw new Error('Token is invalid or expired.');
+          }
+        }
+        return {};
+      },
+    },
+    { server: httpServer, path: server.graphqlPath }
+  );
+
   // Listen on a port
   const PORT = process.env.PORT;
-  app.listen(PORT, () => {
+  httpServer.listen(PORT, () => {
     logger.info(
-      `Server listening at http://localhost:${PORT}${server.graphqlPath}`
+      `Server is running at http://localhost:${PORT}${server.graphqlPath}`
+    );
+    logger.info(
+      `Subscriptions ready at ws://localhost:${PORT}${server.graphqlPath}`
     );
   });
 })();

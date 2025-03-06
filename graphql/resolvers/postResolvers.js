@@ -1,7 +1,15 @@
 const Post = require('../../models/Post');
+const pubsub = require('../pubsub');
 const { requireAuth } = require('../../utils/requireAuth');
 
+const NEW_POST = 'NEW_POST'; // subscription trigger name
+
 exports.postResolvers = {
+  Subscription: {
+    newPost: {
+      subscribe: () => pubsub.asyncIterableIterator([NEW_POST]),
+    },
+  },
   Post: {
     likeCount: (parent) => {
       // `parent` is the Post object
@@ -44,7 +52,15 @@ exports.postResolvers = {
 
       await newPost.save();
 
-      return newPost;
+      // Populate author if needed
+      const postWithAuthor = await Post.findById(newPost._id).populate(
+        'author'
+      );
+
+      // Publish event so subscribers get the new post in real-time
+      pubsub.publish(NEW_POST, { newPost: postWithAuthor });
+
+      return postWithAuthor;
     },
 
     editPost: async (_, { postId, content }, { authUser }) => {
