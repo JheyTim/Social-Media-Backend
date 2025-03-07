@@ -12,6 +12,15 @@ const userSchema = new mongoose.Schema(
     location: { type: String },
     followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    role: {
+      type: String,
+      enum: ['user', 'admin', 'moderator'],
+      default: 'user',
+    },
+    isBanned: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

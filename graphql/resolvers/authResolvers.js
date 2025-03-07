@@ -2,7 +2,6 @@ const User = require('../../models/User');
 const { generateToken } = require('../../utils/auth');
 
 exports.authResolvers = {
-  Query: {},
   Mutation: {
     // Signup
     signup: async (_, { email, password, name }) => {

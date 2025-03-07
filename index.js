@@ -66,12 +66,17 @@ require('./services/passportGoogle');
           // Verify token
           const decoded = jwt.verify(token, process.env.JWT_SECRET);
           const authUser = await User.findById(decoded.userId);
+
+          if (authUser.isBanned) {
+            throw new Error('User is banned.');
+          }
+
           return { authUser };
         } catch (error) {
           // Token is invalid or expired
           logger.error('Token error:', error);
 
-          throw new Error('Token is invalid or expired.');
+          throw new Error('Token is invalid, expired or User is Banned.');
         }
       }
 
@@ -110,11 +115,16 @@ require('./services/passportGoogle');
               process.env.JWT_SECRET
             );
             const authUser = await User.findById(decoded.userId);
+
+            if (authUser.isBanned) {
+              throw new Error('User is banned.');
+            }
+
             return { authUser };
           } catch (err) {
             console.error('Subscription auth error', err);
 
-            throw new Error('Token is invalid or expired.');
+            throw new Error('Token is invalid, expired or User is Banned.');
           }
         }
         return {};
