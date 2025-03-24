@@ -7,11 +7,14 @@ const express = require('express');
 const { createServer } = require('http');
 const { SubscriptionServer } = require('subscriptions-transport-ws');
 const { execute, subscribe } = require('graphql');
+const depthLimit = require('graphql-depth-limit');
+const helmet = require('helmet');
 const logger = require('./utils/logger');
 const connectDB = require('./config/db');
 const User = require('./models/User');
 const { schema } = require('./graphql/schema');
 const { generateToken } = require('./utils/auth');
+const { limiter } = require('./utils/rateLimiter');
 
 require('./services/passportGoogle');
 
@@ -22,6 +25,8 @@ require('./services/passportGoogle');
   const app = express();
 
   app.use(cors());
+  app.use(helmet());
+  app.use(limiter);
 
   // Initialize passport
   app.use(passport.initialize());
@@ -92,6 +97,7 @@ require('./services/passportGoogle');
         path: err.path || null, // Include the GraphQL path where the error occurred
       };
     },
+    validationRules: [depthLimit(5)], // allow max depth of 5
   });
 
   await server.start();
